@@ -1,0 +1,132 @@
+
+{% extends "dashboard_base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-gear"></i>
+                        My Profile
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-4">
+                            <div class="avatar-xl mb-3">
+                                <div class="avatar-title rounded-circle bg-primary">
+                                    {{ current_user.username[0]|upper }}
+                                </div>
+                            </div>
+                            <h5>{{ current_user.full_name }}</h5>
+                            <p class="text-muted">@{{ current_user.username }}</p>
+                            <div class="badge bg-primary">
+                                Member since {{ current_user.created_at.strftime('%B %Y') }}
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <form method="POST">
+                                {{ form.csrf_token }}
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Username</label>
+                                    {{ form.username(class="form-control") }}
+                                    {% for error in form.username.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    {{ form.email(class="form-control") }}
+                                    {% for error in form.email.errors %}
+                                        <div class="text-danger small mt-1">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">First Name</label>
+                                            {{ form.first_name(class="form-control") }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Last Name</label>
+                                            {{ form.last_name(class="form-control") }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Phone Number</label>
+                                    {{ form.phone(class="form-control") }}
+                                </div>
+
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary">
+                                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check2"></i> Update Profile
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Security -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-shield-check"></i>
+                        Account Security
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h6>Password</h6>
+                            <p class="text-muted mb-0">Last changed: 
+                                {% if current_user.last_login %}
+                                    {{ current_user.last_login.strftime('%B %d, %Y') }}
+                                {% else %}
+                                    Not available
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{{ url_for('change_password') }}" class="btn btn-outline-warning">
+                                <i class="bi bi-key"></i> Change Password
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    .avatar-xl {
+        width: 100px;
+        height: 100px;
+    }
+    .avatar-xl .avatar-title {
+        width: 100px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

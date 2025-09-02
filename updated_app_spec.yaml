@@ -1,0 +1,36 @@
+ingress:
+  rules:
+  - component:
+      name: web
+    match:
+      path:
+        prefix: /
+name: asm-system
+region: nyc
+services:
+- environment_slug: python
+  envs:
+  - key: PORT
+    scope: RUN_AND_BUILD_TIME
+    value: "8080"
+  - key: FLASK_ENV
+    scope: RUN_AND_BUILD_TIME
+    value: production
+  - key: FLASK_APP
+    scope: RUN_AND_BUILD_TIME
+    value: routes.py
+  - key: SECRET_KEY
+    scope: RUN_AND_BUILD_TIME
+    value: asm-system-secret-key-2025
+  - key: PYTHON_VERSION
+    scope: RUN_AND_BUILD_TIME
+    value: "3.11"
+  git:
+    branch: main
+    repo_clone_url: https://github.com/elijahondiek/User-Authentication-in-Flask.git
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: web
+  run_command: gunicorn --bind 0.0.0.0:8080 --workers 2 app:app
+  source_dir: /

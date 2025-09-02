@@ -1,0 +1,259 @@
+
+{% extends "dashboard_base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-uppercase mb-1">Total Users</div>
+                            <div class="h2 mb-0" id="total-users">{{ stats.total_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people-fill" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card-2">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-uppercase mb-1">Active Users</div>
+                            <div class="h2 mb-0" id="active-users">{{ stats.active_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card-3">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-uppercase mb-1">Administrators</div>
+                            <div class="h2 mb-0" id="admin-users">{{ stats.admin_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-shield-fill" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-uppercase mb-1">New This Month</div>
+                            <div class="h2 mb-0" id="new-users">{{ stats.new_users }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-plus-fill" style="font-size: 2rem;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Recent Activity -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-bar-chart-line me-1"></i>
+                    User Registration Trends (Last 12 Months)
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="userGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-5">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="bi bi-people-fill me-1"></i>
+                    Recent Users
+                </div>
+                <div class="card-body">
+                    {% for user in recent_users %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar-sm me-3">
+                            <div class="avatar-title rounded-circle bg-primary">
+                                {{ user.username[0]|upper }}
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h6 class="mb-1">{{ user.full_name }}</h6>
+                            <p class="text-muted mb-0">{{ user.email }}</p>
+                            <small class="text-muted">{{ user.created_at.strftime('%Y-%m-%d') }}</small>
+                        </div>
+                        {% if user.is_admin %}
+                        <span class="badge bg-danger">Admin</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    <div class="text-center">
+                        <a href="{{ url_for('manage_users') }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-eye"></i> View All Users
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-activity me-1"></i>
+                    Recent Activity
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Description</th>
+                                    <th>Time</th>
+                                    <th>IP Address</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in recent_activities %}
+                                <tr>
+                                    <td>
+                                        {% if activity.user %}
+                                        {{ activity.user.username }}
+                                        {% else %}
+                                        <span class="text-muted">System</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{% if activity.action == 'Login' %}success{% elif activity.action == 'Logout' %}warning{% elif activity.action == 'Failed Login' %}danger{% else %}info{% endif %}">
+                                            {{ activity.action }}
+                                        </span>
+                                    </td>
+                                    <td>{{ activity.description or '-' }}</td>
+                                    <td>{{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>{{ activity.ip_address or '-' }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center">
+                        <a href="{{ url_for('activity_logs') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-list"></i> View All Activities
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // User Growth Chart
+    const ctx = document.getElementById('userGrowthChart').getContext('2d');
+    const userGrowthChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for month in stats.user_growth %}
+                    '{{ month.month }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'New Users',
+                data: [
+                    {% for month in stats.user_growth %}
+                        {{ month.count }},
+                    {% endfor %}
+                ],
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+
+    // Animate counter numbers
+    function animateValue(id, start, end, duration) {
+        if (start === end) return;
+        var range = end - start;
+        var current = start;
+        var increment = end > start ? 1 : -1;
+        var stepTime = Math.abs(Math.floor(duration / range));
+        var obj = document.getElementById(id);
+        var timer = setInterval(function() {
+            current += increment;
+            obj.innerHTML = current;
+            if (current == end) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    }
+
+    // Start animations when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        animateValue("total-users", 0, {{ stats.total_users }}, 1000);
+        animateValue("active-users", 0, {{ stats.active_users }}, 1200);
+        animateValue("admin-users", 0, {{ stats.admin_users }}, 1400);
+        animateValue("new-users", 0, {{ stats.new_users }}, 1600);
+    });
+</script>
+
+<style>
+    .avatar-sm {
+        width: 40px;
+        height: 40px;
+    }
+    .avatar-title {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
