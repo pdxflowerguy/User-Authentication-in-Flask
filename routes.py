@@ -20,7 +20,7 @@ from sqlalchemy.exc import (
 from werkzeug.routing import BuildError
 
 
-from flask_bcrypt import Bcrypt,generate_password_hash, check_password_hash
+from flask_bcrypt import Bcrypt,generate_password_hash
 
 from flask_login import (
     UserMixin,
@@ -72,7 +72,7 @@ def login():
     if form.validate_on_submit():
         try:
             user = User.query.filter_by(email=form.email.data).first()
-            if user and check_password_hash(user.pwd, form.pwd.data):
+            if user and bcrypt.check_password_hash(user.pwd, form.pwd.data):
                 if user.is_active:
                     login_user(user)
                     # Update last login
@@ -343,7 +343,7 @@ def change_password():
     
     if form.validate_on_submit():
         try:
-            if check_password_hash(current_user.pwd, form.current_pwd.data):
+            if bcrypt.check_password_hash(current_user.pwd, form.current_pwd.data):
                 current_user.pwd = bcrypt.generate_password_hash(form.new_pwd.data)
                 db.session.commit()
                 log_activity(current_user.id, "Password Change", "User changed password")
