@@ -55,8 +55,16 @@ with app.app_context():
     try:
         db.create_all()
         print("✓ Database tables initialized")
+        
+        # Test database connectivity
+        user_count = User.query.count()
+        activity_count = ActivityLog.query.count()
+        print(f"✓ Database connection verified - Users: {user_count}, Activities: {activity_count}")
+        
     except Exception as e:
-        print(f"Database initialization warning: {e}")
+        print(f"Database initialization error: {e}")
+        import traceback
+        traceback.print_exc()
 
 @app.before_request
 def session_handler():
@@ -68,6 +76,33 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return render_template("index.html", title="Home")
+
+
+@app.route("/health")
+def health_check():
+    """Health check endpoint to diagnose production issues"""
+    try:
+        # Test database connection
+        user_count = User.query.count()
+        activity_count = ActivityLog.query.count()
+        
+        # Test form creation
+        form = register_form()
+        
+        return jsonify({
+            "status": "healthy",
+            "database": "connected",
+            "users": user_count,
+            "activities": activity_count,
+            "form_created": True,
+            "csrf_enabled": True
+        })
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "error": str(e),
+            "database": "failed"
+        }), 500
 
 
 @app.route("/login/", methods=("GET", "POST"), strict_slashes=False)
