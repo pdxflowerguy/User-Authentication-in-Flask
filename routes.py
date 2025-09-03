@@ -193,9 +193,9 @@ def register():
             email = form.email.data
             pwd = form.pwd.data
             username = form.username.data
-            first_name = form.first_name.data
-            last_name = form.last_name.data
-            phone = form.phone.data
+            first_name = form.first_name.data if hasattr(form, 'first_name') and form.first_name.data else None
+            last_name = form.last_name.data if hasattr(form, 'last_name') and form.last_name.data else None
+            phone = form.phone.data if hasattr(form, 'phone') and form.phone.data else None
             
             newuser = User(
                 username=username,
@@ -214,24 +214,36 @@ def register():
             flash(f"Account successfully created! Please log in.", "success")
             return redirect(url_for("login"))
 
-        except InvalidRequestError:
+        except InvalidRequestError as e:
             db.session.rollback()
+            print(f"InvalidRequestError: {e}")
             flash(f"Something went wrong!", "danger")
-        except IntegrityError:
+        except IntegrityError as e:
             db.session.rollback()
+            print(f"IntegrityError: {e}")
             flash(f"User already exists!", "warning")
-        except DataError:
+        except DataError as e:
             db.session.rollback()
+            print(f"DataError: {e}")
             flash(f"Invalid Entry", "warning")
-        except InterfaceError:
+        except InterfaceError as e:
             db.session.rollback()
+            print(f"InterfaceError: {e}")
             flash(f"Error connecting to the database", "danger")
-        except DatabaseError:
+        except DatabaseError as e:
             db.session.rollback()
+            print(f"DatabaseError: {e}")
             flash(f"Error connecting to the database", "danger")
-        except BuildError:
+        except BuildError as e:
             db.session.rollback()
+            print(f"BuildError: {e}")
             flash(f"An error occurred!", "danger")
+        except Exception as e:
+            db.session.rollback()
+            print(f"Unexpected error during registration: {e}")
+            import traceback
+            traceback.print_exc()
+            flash(f"An unexpected error occurred. Please try again.", "danger")
     return render_template("auth.html",
         form=form,
         text="Create account",
