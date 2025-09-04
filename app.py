@@ -46,4 +46,8 @@ def create_app():
     bcrypt.init_app(app)
     csrf.init_app(app)
     
+    # Register blueprints
+    from youtube_integration import youtube_bp
+    app.register_blueprint(youtube_bp)
+    
     return app
