@@ -1,0 +1,276 @@
+{% extends "layout.html" %}
+
+{% block title %}YouTube Automation Settings{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>YouTube Automation Settings</h6>
+                        </div>
+                        <div class="col-6 text-end">
+                            <a href="{{ url_for('youtube.dashboard') }}" class="btn btn-primary btn-sm">Back to Dashboard</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('youtube.settings') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <h4>API Configuration</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="youtube_api_key">YouTube API Key</label>
+                                    <input type="text" class="form-control" id="youtube_api_key" name="youtube_api_key" value="{{ config.youtube_api_key }}" required>
+                                    <small class="form-text text-muted">Your YouTube API key for accessing the YouTube API.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="youtube_channel_id">YouTube Channel ID</label>
+                                    <input type="text" class="form-control" id="youtube_channel_id" name="youtube_channel_id" value="{{ config.youtube_channel_id }}" required>
+                                    <small class="form-text text-muted">Your YouTube channel ID.</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mt-4">Directory Configuration</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="output_directory">Output Directory</label>
+                                    <input type="text" class="form-control" id="output_directory" name="output_directory" value="{{ config.output_directory }}" required>
+                                    <small class="form-text text-muted">Directory for generated videos.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="templates_directory">Templates Directory</label>
+                                    <input type="text" class="form-control" id="templates_directory" name="templates_directory" value="{{ config.templates_directory }}" required>
+                                    <small class="form-text text-muted">Directory for content templates.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="assets_directory">Assets Directory</label>
+                                    <input type="text" class="form-control" id="assets_directory" name="assets_directory" value="{{ config.assets_directory }}" required>
+                                    <small class="form-text text-muted">Directory for static assets.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="analytics_directory">Analytics Directory</label>
+                                    <input type="text" class="form-control" id="analytics_directory" name="analytics_directory" value="{{ config.analytics_directory }}" required>
+                                    <small class="form-text text-muted">Directory for analytics data.</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mt-4">Content Configuration</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="videos_per_run">Videos Per Run</label>
+                                    <input type="number" class="form-control" id="videos_per_run" name="videos_per_run" value="{{ config.videos_per_run }}" min="1" max="10" required>
+                                    <small class="form-text text-muted">Number of videos to generate per automation run.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="default_visibility">Default Visibility</label>
+                                    <select class="form-control" id="default_visibility" name="default_visibility">
+                                        <option value="private" {% if config.publishing.default_visibility == 'private' %}selected{% endif %}>Private</option>
+                                        <option value="unlisted" {% if config.publishing.default_visibility == 'unlisted' %}selected{% endif %}>Unlisted</option>
+                                        <option value="public" {% if config.publishing.default_visibility == 'public' %}selected{% endif %}>Public</option>
+                                        <option value="scheduled" {% if config.publishing.default_visibility == 'scheduled' %}selected{% endif %}>Scheduled</option>
+                                    </select>
+                                    <small class="form-text text-muted">Default visibility for uploaded videos.</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mt-4">Content Categories</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="category_ai_tools">AI Tools</label>
+                                    <input type="number" class="form-control" id="category_ai_tools" name="category_ai_tools" value="{{ config.content_categories['AI Tools'] }}" min="0" max="1" step="0.05" required>
+                                    <small class="form-text text-muted">Weight for AI Tools category (0-1).</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="category_monetization">Monetization</label>
+                                    <input type="number" class="form-control" id="category_monetization" name="category_monetization" value="{{ config.content_categories.Monetization }}" min="0" max="1" step="0.05" required>
+                                    <small class="form-text text-muted">Weight for Monetization category (0-1).</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="category_digital_products">Digital Products</label>
+                                    <input type="number" class="form-control" id="category_digital_products" name="category_digital_products" value="{{ config.content_categories['Digital Products'] }}" min="0" max="1" step="0.05" required>
+                                    <small class="form-text text-muted">Weight for Digital Products category (0-1).</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="category_audience_building">Audience Building</label>
+                                    <input type="number" class="form-control" id="category_audience_building" name="category_audience_building" value="{{ config.content_categories['Audience Building'] }}" min="0" max="1" step="0.05" required>
+                                    <small class="form-text text-muted">Weight for Audience Building category (0-1).</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="category_location_optimization">Location Optimization</label>
+                                    <input type="number" class="form-control" id="category_location_optimization" name="category_location_optimization" value="{{ config.content_categories['Location Optimization'] }}" min="0" max="1" step="0.05" required>
+                                    <small class="form-text text-muted">Weight for Location Optimization category (0-1).</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="category_automation_strategies">Automation Strategies</label>
+                                    <input type="number" class="form-control" id="category_automation_strategies" name="category_automation_strategies" value="{{ config.content_categories['Automation Strategies'] }}" min="0" max="1" step="0.05" required>
+                                    <small class="form-text text-muted">Weight for Automation Strategies category (0-1).</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mt-4">Engagement Settings</h4>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="auto_respond" name="auto_respond" {% if config.engagement.auto_respond %}checked{% endif %}>
+                                        <label class="form-check-label" for="auto_respond">Auto-Respond to Comments</label>
+                                    </div>
+                                    <small class="form-text text-muted">Automatically respond to comments.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="response_rate">Response Rate</label>
+                                    <input type="number" class="form-control" id="response_rate" name="response_rate" value="{{ config.engagement.response_rate }}" min="0" max="1" step="0.1" required>
+                                    <small class="form-text text-muted">Percentage of comments to respond to (0-1).</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="response_delay_min">Min Delay (hours)</label>
+                                    <input type="number" class="form-control" id="response_delay_min" name="response_delay_min" value="{{ config.engagement.response_delay_min }}" min="0" max="24" required>
+                                    <small class="form-text text-muted">Minimum delay before responding.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="response_delay_max">Max Delay (hours)</label>
+                                    <input type="number" class="form-control" id="response_delay_max" name="response_delay_max" value="{{ config.engagement.response_delay_max }}" min="0" max="48" required>
+                                    <small class="form-text text-muted">Maximum delay before responding.</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mt-4">Notification Settings</h4>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="notification_email">Notification Email</label>
+                                    <input type="email" class="form-control" id="notification_email" name="notification_email" value="{{ config.notifications.email }}">
+                                    <small class="form-text text-muted">Email address for notifications.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="send_on_completion" name="send_on_completion" {% if config.notifications.send_on_completion %}checked{% endif %}>
+                                        <label class="form-check-label" for="send_on_completion">Notify on Completion</label>
+                                    </div>
+                                    <small class="form-text text-muted">Send notification when automation completes.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="send_on_failure" name="send_on_failure" {% if config.notifications.send_on_failure %}checked{% endif %}>
+                                        <label class="form-check-label" for="send_on_failure">Notify on Failure</label>
+                                    </div>
+                                    <small class="form-text text-muted">Send notification when automation fails.</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">Save Settings</button>
+                                <a href="{{ url_for('youtube.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validate that category weights sum to 1
+        const categoryInputs = [
+            document.getElementById('category_ai_tools'),
+            document.getElementById('category_monetization'),
+            document.getElementById('category_digital_products'),
+            document.getElementById('category_audience_building'),
+            document.getElementById('category_location_optimization'),
+            document.getElementById('category_automation_strategies')
+        ];
+        
+        function updateTotal() {
+            let total = 0;
+            categoryInputs.forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            
+            const totalElement = document.getElementById('category-total');
+            totalElement.textContent = total.toFixed(2);
+            
+            if (Math.abs(total - 1) > 0.01) {
+                totalElement.classList.add('text-danger');
+                totalElement.classList.remove('text-success');
+            } else {
+                totalElement.classList.add('text-success');
+                totalElement.classList.remove('text-danger');
+            }
+        }
+        
+        categoryInputs.forEach(input => {
+            input.addEventListener('input', updateTotal);
+        });
+        
+        // Add category total display
+        const lastCategoryRow = document.querySelector('div.row.mt-3');
+        const totalRow = document.createElement('div');
+        totalRow.className = 'row mt-3';
+        totalRow.innerHTML = `
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <strong>Category Weight Total:</strong> <span id="category-total">1.00</span>
+                    <small class="ms-2">(Should equal 1.00)</small>
+                </div>
+            </div>
+        `;
+        lastCategoryRow.after(totalRow);
+        
+        // Initialize total
+        updateTotal();
+    });
+</script>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

@@ -1,0 +1,388 @@
+{% extends "layout.html" %}
+
+{% block title %}YouTube Automation Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>YouTube Automation Dashboard</h6>
+                        </div>
+                        <div class="col-6 text-end">
+                            <button id="run-automation" class="btn btn-primary btn-sm">Run Automation</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body px-0 pt-0 pb-2">
+                    <div class="row p-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header pb-0">
+                                    <h6>System Status</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if system_status %}
+                                    <div class="mb-3">
+                                        <h4>
+                                            {% if system_status.status == 'Operational' %}
+                                            <span class="badge bg-success">{{ system_status.status }}</span>
+                                            {% elif system_status.status == 'FFmpeg Missing' %}
+                                            <span class="badge bg-warning">{{ system_status.status }}</span>
+                                            {% else %}
+                                            <span class="badge bg-danger">{{ system_status.status }}</span>
+                                            {% endif %}
+                                        </h4>
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>FFmpeg:</strong>
+                                        {% if system_status.ffmpeg_installed %}
+                                        <span class="text-success">Installed</span>
+                                        {% else %}
+                                        <span class="text-danger">Missing</span>
+                                        <button id="install-ffmpeg" class="btn btn-warning btn-sm ms-2">Install FFmpeg</button>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Configuration:</strong>
+                                        {% if system_status.config_exists %}
+                                        <span class="text-success">Available</span>
+                                        {% else %}
+                                        <span class="text-danger">Missing</span>
+                                        <a href="{{ url_for('youtube.settings') }}" class="btn btn-warning btn-sm ms-2">Create Config</a>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-2">
+                                        <strong>Last Run:</strong> {{ system_status.last_run }}
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-warning">
+                                        System status information not available.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header pb-0">
+                                    <h6>Content Performance</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if analytics_summary and analytics_summary.categories %}
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Category</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Avg Views</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Videos</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Trend</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for category in analytics_summary.categories %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex px-2 py-1">
+                                                            <div class="d-flex flex-column justify-content-center">
+                                                                <h6 class="mb-0 text-sm">{{ category.name }}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ category.average_views }}</p>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ category.videos_count }}</p>
+                                                    </td>
+                                                    <td>
+                                                        {% if category.trend == 'increasing' %}
+                                                        <span class="badge bg-success">↑ Increasing</span>
+                                                        {% elif category.trend == 'decreasing' %}
+                                                        <span class="badge bg-danger">↓ Decreasing</span>
+                                                        {% else %}
+                                                        <span class="badge bg-secondary">→ Stable</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="text-xs text-muted mt-2">
+                                        Data as of {{ analytics_summary.date }}
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-info">
+                                        No analytics data available yet.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row p-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header pb-0">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <h6>Recent Videos</h6>
+                                        </div>
+                                        <div class="col-6 text-end">
+                                            <a href="{{ url_for('youtube.reports') }}" class="btn btn-info btn-sm">View All Reports</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    {% if recent_videos %}
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Title</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Category</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Format</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for video in recent_videos %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex px-2 py-1">
+                                                            <div class="d-flex flex-column justify-content-center">
+                                                                <h6 class="mb-0 text-sm">{{ video.title }}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ video.category }}</p>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ video.format }}</p>
+                                                    </td>
+                                                    <td>
+                                                        {% if video.status == 'completed' %}
+                                                        <span class="badge bg-success">Completed</span>
+                                                        {% elif video.status == 'published' %}
+                                                        <span class="badge bg-info">Published</span>
+                                                        {% elif video.status == 'failed' %}
+                                                        <span class="badge bg-danger">Failed</span>
+                                                        {% else %}
+                                                        <span class="badge bg-secondary">{{ video.status }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    {% else %}
+                                    <div class="alert alert-info">
+                                        No recent videos available.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if latest_report %}
+                    <div class="row p-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header pb-0">
+                                    <h6>Latest Report ({{ latest_report.date }})</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="markdown-content">
+                                        {{ latest_report.content | safe }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Run Automation Modal -->
+<div class="modal fade" id="runningModal" tabindex="-1" aria-labelledby="runningModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="runningModalLabel">Running Automation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Running YouTube automation. This may take a few minutes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="resultModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resultModalLabel">Automation Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="resultModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('youtube.reports') }}" class="btn btn-primary">View Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Run automation
+        document.getElementById('run-automation').addEventListener('click', function() {
+            // Show running modal
+            var runningModal = new bootstrap.Modal(document.getElementById('runningModal'));
+            runningModal.show();
+            
+            // Run automation
+            fetch('{{ url_for("youtube.run_automation") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide running modal
+                runningModal.hide();
+                
+                // Show result modal
+                var resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+                
+                if (data.status === 'success') {
+                    document.getElementById('resultModalBody').innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>Success!</strong> ${data.message}
+                        </div>
+                        <p>Refresh the page to see the latest results.</p>
+                    `;
+                } else {
+                    document.getElementById('resultModalBody').innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Error!</strong> ${data.message}
+                        </div>
+                    `;
+                }
+                
+                resultModal.show();
+            })
+            .catch(error => {
+                // Hide running modal
+                runningModal.hide();
+                
+                // Show result modal
+                var resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+                document.getElementById('resultModalBody').innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error!</strong> An unexpected error occurred.
+                    </div>
+                `;
+                resultModal.show();
+                
+                console.error('Error:', error);
+            });
+        });
+        
+        // Install FFmpeg
+        if (document.getElementById('install-ffmpeg')) {
+            document.getElementById('install-ffmpeg').addEventListener('click', function() {
+                // Show running modal
+                var runningModal = new bootstrap.Modal(document.getElementById('runningModal'));
+                document.getElementById('runningModalLabel').textContent = 'Installing FFmpeg';
+                document.querySelector('#runningModal .modal-body p').textContent = 'Installing FFmpeg. This may take a few minutes...';
+                runningModal.show();
+                
+                // Install FFmpeg
+                fetch('{{ url_for("youtube.install_ffmpeg") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Hide running modal
+                    runningModal.hide();
+                    
+                    // Show result modal
+                    var resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+                    
+                    if (data.status === 'success') {
+                        document.getElementById('resultModalBody').innerHTML = `
+                            <div class="alert alert-success">
+                                <strong>Success!</strong> ${data.message}
+                            </div>
+                            <p>FFmpeg version: ${data.version}</p>
+                            <p>Refresh the page to update the system status.</p>
+                        `;
+                    } else {
+                        document.getElementById('resultModalBody').innerHTML = `
+                            <div class="alert alert-danger">
+                                <strong>Error!</strong> ${data.message}
+                            </div>
+                        `;
+                    }
+                    
+                    resultModal.show();
+                })
+                .catch(error => {
+                    // Hide running modal
+                    runningModal.hide();
+                    
+                    // Show result modal
+                    var resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
+                    document.getElementById('resultModalBody').innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Error!</strong> An unexpected error occurred.
+                        </div>
+                    `;
+                    resultModal.show();
+                    
+                    console.error('Error:', error);
+                });
+            });
+        }
+    });
+</script>
+
+<style>
+    .markdown-content {
+        max-height: 500px;
+        overflow-y: auto;
+        font-family: monospace;
+        white-space: pre-wrap;
+    }
+</style>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>

@@ -1,0 +1,274 @@
+{% extends "layout.html" %}
+
+{% block title %}YouTube Automation Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header pb-0">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6>Report: {{ report.date }} {{ report.time }}</h6>
+                        </div>
+                        <div class="col-6 text-end">
+                            <a href="{{ url_for('youtube.reports') }}" class="btn btn-primary btn-sm">Back to Reports</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="summary-tab" data-bs-toggle="tab" data-bs-target="#summary" type="button" role="tab" aria-controls="summary" aria-selected="true">Summary</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="videos-tab" data-bs-toggle="tab" data-bs-target="#videos" type="button" role="tab" aria-controls="videos" aria-selected="false">Videos</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="engagement-tab" data-bs-toggle="tab" data-bs-target="#engagement" type="button" role="tab" aria-controls="engagement" aria-selected="false">Engagement</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="analytics-tab" data-bs-toggle="tab" data-bs-target="#analytics" type="button" role="tab" aria-controls="analytics" aria-selected="false">Analytics</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="raw-tab" data-bs-toggle="tab" data-bs-target="#raw" type="button" role="tab" aria-controls="raw" aria-selected="false">Raw Report</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="reportTabsContent">
+                        <!-- Summary Tab -->
+                        <div class="tab-pane fade show active" id="summary" role="tabpanel" aria-labelledby="summary-tab">
+                            <div class="p-3">
+                                <h4>Execution Summary</h4>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5>Video Production</h5>
+                                                {% if report.videos and report.videos.videos %}
+                                                    <p>Videos Attempted: {{ report.videos.videos|length }}</p>
+                                                    <p>Successful: {{ report.videos.successful }}</p>
+                                                    <p>Failed: {{ report.videos.failed }}</p>
+                                                {% else %}
+                                                    <p>No video production data available.</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5>Engagement</h5>
+                                                {% if report.engagement %}
+                                                    <p>Comments Processed: {{ report.engagement.comments_processed }}</p>
+                                                    <p>Responses Generated: {{ report.engagement.responses_generated }}</p>
+                                                    <p>Success Rate: {{ (report.engagement.responses_generated / report.engagement.comments_processed * 100)|round|int if report.engagement.comments_processed > 0 else 0 }}%</p>
+                                                {% else %}
+                                                    <p>No engagement data available.</p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="mt-4">Action Items</h4>
+                                <div class="card">
+                                    <div class="card-body">
+                                        {% if "Action Items" in report.content %}
+                                            {% set action_items_section = report.content.split("Action Items")[1].split("Report Generated")[0] %}
+                                            <pre class="mb-0">{{ action_items_section }}</pre>
+                                        {% else %}
+                                            <p>No action items found in the report.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Videos Tab -->
+                        <div class="tab-pane fade" id="videos" role="tabpanel" aria-labelledby="videos-tab">
+                            <div class="p-3">
+                                <h4>Video Production</h4>
+                                {% if report.videos and report.videos.videos %}
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Title</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Category</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Format</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for video in report.videos.videos %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex px-2 py-1">
+                                                            <div class="d-flex flex-column justify-content-center">
+                                                                <h6 class="mb-0 text-sm">{{ video.title }}</h6>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ video.category }}</p>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ video.format }}</p>
+                                                    </td>
+                                                    <td>
+                                                        {% if video.status == 'completed' %}
+                                                        <span class="badge bg-success">Completed</span>
+                                                        {% elif video.status == 'published' %}
+                                                        <span class="badge bg-info">Published</span>
+                                                        {% elif video.status == 'failed' %}
+                                                        <span class="badge bg-danger">Failed</span>
+                                                        {% else %}
+                                                        <span class="badge bg-secondary">{{ video.status }}</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    {% if report.videos.status == 'failed' %}
+                                        <div class="alert alert-danger mt-3">
+                                            <strong>Error:</strong> Video production failed.
+                                            {% if "ffmpeg" in report.content|lower %}
+                                                <p>FFmpeg dependency is missing. Please install FFmpeg to enable video production.</p>
+                                                <a href="{{ url_for('youtube.install_ffmpeg') }}" class="btn btn-warning btn-sm">Install FFmpeg</a>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        No video production data available.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Engagement Tab -->
+                        <div class="tab-pane fade" id="engagement" role="tabpanel" aria-labelledby="engagement-tab">
+                            <div class="p-3">
+                                <h4>Engagement Management</h4>
+                                {% if report.engagement and report.engagement.responses %}
+                                    <div class="table-responsive">
+                                        <table class="table align-items-center mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Comment</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Response</th>
+                                                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for response in report.engagement.responses %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex px-2 py-1">
+                                                            <div class="d-flex flex-column justify-content-center">
+                                                                <p class="text-xs text-secondary mb-0">{{ response.comment_text }}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <p class="text-xs font-weight-bold mb-0">{{ response.response_text if response.status == 'generated' else 'N/A' }}</p>
+                                                    </td>
+                                                    <td>
+                                                        {% if response.status == 'generated' %}
+                                                        <span class="badge bg-success">Generated</span>
+                                                        {% else %}
+                                                        <span class="badge bg-danger">Failed</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    
+                                    <div class="card mt-3">
+                                        <div class="card-body">
+                                            <h5>Performance Metrics</h5>
+                                            <p>Comments Processed: {{ report.engagement.comments_processed }}</p>
+                                            <p>Responses Generated: {{ report.engagement.responses_generated }}</p>
+                                            <p>Execution Time: {{ report.engagement.execution_time|round(2) }} ms</p>
+                                            <p>Success Rate: {{ (report.engagement.responses_generated / report.engagement.comments_processed * 100)|round|int if report.engagement.comments_processed > 0 else 0 }}%</p>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        No engagement data available.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Analytics Tab -->
+                        <div class="tab-pane fade" id="analytics" role="tabpanel" aria-labelledby="analytics-tab">
+                            <div class="p-3">
+                                <h4>Analytics</h4>
+                                {% if report.analytics %}
+                                    {% if "Performance Metrics" in report.content %}
+                                        {% set metrics_section = report.content.split("Performance Metrics")[1].split("Optimization Recommendations")[0] %}
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <h5>Performance Metrics</h5>
+                                                <pre class="mb-0">{{ metrics_section }}</pre>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    {% if "Content Pipeline Status" in report.content %}
+                                        {% set pipeline_section = report.content.split("Content Pipeline Status")[1].split("Technical Issues")[0] %}
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h5>Content Pipeline</h5>
+                                                <pre class="mb-0">{{ pipeline_section }}</pre>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        No analytics data available.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Raw Report Tab -->
+                        <div class="tab-pane fade" id="raw" role="tabpanel" aria-labelledby="raw-tab">
+                            <div class="p-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <pre class="markdown-content">{{ report.content }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    pre {
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 0.9rem;
+    }
+    
+    .markdown-content {
+        max-height: 800px;
+        overflow-y: auto;
+    }
+</style>
+{% endblock %}
+<script src="https://sites.super.myninja.ai/_assets/ninja-daytona-script.js"></script>
